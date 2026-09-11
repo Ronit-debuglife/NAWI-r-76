@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication & Verification Access | NAWI Metrology Suite{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <div class="auth-card-container">
+        <!-- Auth Header Branding -->
+        <div class="auth-card-header">
+            <div class="auth-badge-pill">
+                <span class="pulse-dot"></span>
+                <span>OIML R-76 Laboratory Portal</span>
+            </div>
+            <h1 class="auth-title" id="authMainTitle">Welcome to Metrology Suite</h1>
+            <p class="auth-subtitle" id="authSubtitle">Sign in to manage legal metrology verification reports, instruments, and calibration data.</p>
+        </div>
+
+        <!-- Feedback Alert Banner -->
+        <div id="authAlert" class="auth-alert" style="display: none;"></div>
+
+        <!-- Google Single Sign-On Button -->
+        <div class="auth-sso-section">
+            <button type="button" class="btn-google-sso" id="googleSignInBtn">
+                <svg class="google-icon" width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/>
+                    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+                    <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2c0 2.8.7 5.5 2 7.8l3.6-2.9z"/>
+                    <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.8-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.9C3.8 20.7 7.6 23.5 12 23.5z"/>
+                </svg>
+                <span id="googleBtnText">Continue with Google Account</span>
+            </button>
+        </div>
+
+        <!-- Separator -->
+        <div class="auth-divider">
+            <span>or continue with email</span>
+        </div>
+
+        <!-- Tab Switcher (Sign In vs Sign Up) -->
+        <div class="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab active" id="tabSignIn" role="tab" aria-selected="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                Sign In (Existing User)
+            </button>
+            <button type="button" class="auth-tab" id="tabSignUp" role="tab" aria-selected="false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                Sign Up (New User)
+            </button>
+        </div>
+
+        <!-- Form: Sign In (Existing Users) -->
+        <form id="signInForm" class="auth-form" novalidate>
+            <div class="form-group">
+                <label for="signInEmail" class="form-label">
+                    <span>Email Address</span>
+                </label>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    <input type="email" id="signInEmail" class="form-input" placeholder="inspector@metrology.gov.in" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-label-row">
+                    <label for="signInPassword" class="form-label">Password</label>
+                    <a href="javascript:void(0)" class="auth-link-forgot" id="forgotPasswordLink">Forgot password?</a>
+                </div>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="signInPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                    <button type="button" class="btn-toggle-pwd" data-target="signInPassword" title="Show/Hide Password">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth-submit" id="signInSubmitBtn">
+                <span class="btn-spinner" style="display: none;"></span>
+                <span class="btn-text">Sign In to Dashboard</span>
+            </button>
+        </form>
+
+        <!-- Form: Sign Up (New Users) -->
+        <form id="signUpForm" class="auth-form" style="display: none;" novalidate>
+            <div class="form-group">
+                <label for="signUpName" class="form-label">Full Name / Inspector ID</label>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                    <input type="text" id="signUpName" class="form-input" placeholder="Dr. Rajesh Verma (Legal Metrologist)" autocomplete="name">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signUpEmail" class="form-label">Email Address</label>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    <input type="email" id="signUpEmail" class="form-input" placeholder="officer@domain.com" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signUpPassword" class="form-label">Create Password (Min 6 characters)</label>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="signUpPassword" class="form-input" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+                    <button type="button" class="btn-toggle-pwd" data-target="signUpPassword" title="Show/Hide Password">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signUpConfirmPassword" class="form-label">Confirm Password</label>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <input type="password" id="signUpConfirmPassword" class="form-input" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+                    <button type="button" class="btn-toggle-pwd" data-target="signUpConfirmPassword" title="Show/Hide Password">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth-submit" id="signUpSubmitBtn">
+                <span class="btn-spinner" style="display: none;"></span>
+                <span class="btn-text">Create Inspector Account</span>
+            </button>
+        </form>
+
+        <!-- Security / Compliance Footer Note -->
+        <div class="auth-security-notice">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Secured via Firebase Authentication &bull; AES-256 Metrological Vault</span>
+        </div>
+    </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div class="modal-backdrop" id="resetPasswordModal" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Reset Account Password</h3>
+            <button type="button" class="btn-close-modal" id="closeResetModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">Enter the email associated with your account and we will send a password reset recovery link.</p>
+            <div id="resetModalAlert" class="auth-alert" style="display: none;"></div>
+            <div class="form-group">
+                <label for="resetEmailInput" class="form-label">Email Address</label>
+                <div class="input-with-icon">
+                    <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    <input type="email" id="resetEmailInput" class="form-input" placeholder="inspector@metrology.gov.in">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelResetBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="sendResetBtn">
+                <span class="btn-spinner" style="display: none;"></span>
+                <span>Send Reset Link</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tabSignIn = document.getElementById("tabSignIn");
+    const tabSignUp = document.getElementById("tabSignUp");
+    const signInForm = document.getElementById("signInForm");
+    const signUpForm = document.getElementById("signUpForm");
+    const authAlert = document.getElementById("authAlert");
+    const googleSignInBtn = document.getElementById("googleSignInBtn");
+
+    const authMainTitle = document.getElementById("authMainTitle");
+    const authSubtitle = document.getElementById("authSubtitle");
+
+    // Check URL query parameters (e.g. ?mode=signup)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("mode") === "signup") {
+        switchToSignUp();
+    }
+
+    function showAlert(message, type = "error") {
+        authAlert.className = `auth-alert auth-alert-${type}`;
+        authAlert.innerHTML = message;
+        authAlert.style.display = "block";
+        authAlert.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function hideAlert() {
+        authAlert.style.display = "none";
+        authAlert.innerHTML = "";
+    }
+
+    function setBtnLoading(btn, isLoading, defaultText) {
+        const spinner = btn.querySelector(".btn-spinner");
+        const textSpan = btn.querySelector(".btn-text") || btn.querySelector("span:not(.btn-spinner)");
+        if (isLoading) {
+            btn.disabled = true;
+            if (spinner) spinner.style.display = "inline-block";
+            if (textSpan) textSpan.textContent = "Authenticating...";
+        } else {
+            btn.disabled = false;
+            if (spinner) spinner.style.display = "none";
+            if (textSpan && defaultText) textSpan.textContent = defaultText;
+        }
+    }
+
+    function switchToSignIn() {
+        tabSignIn.classList.add("active");
+        tabSignIn.setAttribute("aria-selected", "true");
+        tabSignUp.classList.remove("active");
+        tabSignUp.setAttribute("aria-selected", "false");
+
+        signInForm.style.display = "flex";
+        signUpForm.style.display = "none";
+        authMainTitle.textContent = "Welcome Back";
+        authSubtitle.textContent = "Sign in to access your metrological verification reports and records.";
+        hideAlert();
+    }
+
+    function switchToSignUp() {
+        tabSignUp.classList.add("active");
+        tabSignUp.setAttribute("aria-selected", "true");
+        tabSignIn.classList.remove("active");
+        tabSignIn.setAttribute("aria-selected", "false");
+
+        signInForm.style.display = "none";
+        signUpForm.style.display = "flex";
+        authMainTitle.textContent = "Create Inspector Account";
+        authSubtitle.textContent = "Register a new account to generate OIML R-76 compliant verification reports.";
+        hideAlert();
+    }
+
+    tabSignIn.addEventListener("click", switchToSignIn);
+    tabSignUp.addEventListener("click", switchToSignUp);
+
+    // Password visibility toggle
+    document.querySelectorAll(".btn-toggle-pwd").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const targetId = btn.getAttribute("data-target");
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                btn.classList.add("active");
+            } else {
+                input.type = "password";
+                btn.classList.remove("active");
+            }
+        });
+    });
+
+    // 1. Google Sign-In
+    googleSignInBtn.addEventListener("click", async () => {
+        hideAlert();
+        googleSignInBtn.disabled = true;
+        const originalText = googleSignInBtn.querySelector("span").textContent;
+        googleSignInBtn.querySelector("span").textContent = "Connecting to Google...";
+
+        try {
+            const user = await FirebaseAuthManager.signInWithGoogle();
+            showAlert(`<strong>Success!</strong> Signed in with Google as ${user.email}. Redirecting...`, "success");
+            setTimeout(() => {
+                const redirect = new URLSearchParams(window.location.search).get("redirect") || "/";
+                window.location.href = redirect;
+            }, 800);
+        } catch (error) {
+            console.error("Google Sign-in Error:", error);
+            showAlert(FirebaseAuthManager.getFriendlyErrorMessage(error), "error");
+            googleSignInBtn.disabled = false;
+            googleSignInBtn.querySelector("span").textContent = originalText;
+        }
+    });
+
+    // 2. Email & Password Sign In (Existing User)
+    signInForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const email = document.getElementById("signInEmail").value.trim();
+        const password = document.getElementById("signInPassword").value;
+        const submitBtn = document.getElementById("signInSubmitBtn");
+
+        if (!email || !password) {
+            showAlert("Please enter both your email address and password.", "error");
+            return;
+        }
+
+        setBtnLoading(submitBtn, true, "Sign In to Dashboard");
+
+        try {
+            const user = await FirebaseAuthManager.signInWithEmail(email, password);
+            showAlert(`<strong>Success!</strong> Signed in as ${user.email}. Redirecting...`, "success");
+            setTimeout(() => {
+                const redirect = new URLSearchParams(window.location.search).get("redirect") || "/";
+                window.location.href = redirect;
+            }, 750);
+        } catch (error) {
+            console.error("Sign In Error:", error);
+            showAlert(FirebaseAuthManager.getFriendlyErrorMessage(error), "error");
+            setBtnLoading(submitBtn, false, "Sign In to Dashboard");
+        }
+    });
+
+    // 3. Email & Password Sign Up (New User)
+    signUpForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const name = document.getElementById("signUpName").value.trim();
+        const email = document.getElementById("signUpEmail").value.trim();
+        const password = document.getElementById("signUpPassword").value;
+        const confirmPassword = document.getElementById("signUpConfirmPassword").value;
+        const submitBtn = document.getElementById("signUpSubmitBtn");
+
+        if (!email || !password) {
+            showAlert("Please provide an email and a secure password.", "error");
+            return;
+        }
+
+        if (password.length < 6) {
+            showAlert("Password must be at least 6 characters in length.", "error");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showAlert("Passwords do not match. Please verify and try again.", "error");
+            return;
+        }
+
+        setBtnLoading(submitBtn, true, "Create Inspector Account");
+
+        try {
+            const user = await FirebaseAuthManager.signUpWithEmail(email, password, name);
+            showAlert(`<strong>Account Created Successfully!</strong> Welcome, ${user.displayName || user.email}. Redirecting...`, "success");
+            setTimeout(() => {
+                const redirect = new URLSearchParams(window.location.search).get("redirect") || "/";
+                window.location.href = redirect;
+            }, 900);
+        } catch (error) {
+            console.error("Sign Up Error:", error);
+            showAlert(FirebaseAuthManager.getFriendlyErrorMessage(error), "error");
+            setBtnLoading(submitBtn, false, "Create Inspector Account");
+        }
+    });
+
+    // 4. Password Reset Modal Handling
+    const resetModal = document.getElementById("resetPasswordModal");
+    const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+    const closeResetModalBtn = document.getElementById("closeResetModalBtn");
+    const cancelResetBtn = document.getElementById("cancelResetBtn");
+    const sendResetBtn = document.getElementById("sendResetBtn");
+    const resetModalAlert = document.getElementById("resetModalAlert");
+    const resetEmailInput = document.getElementById("resetEmailInput");
+
+    function openResetModal() {
+        const currentEmail = document.getElementById("signInEmail").value.trim();
+        if (currentEmail) resetEmailInput.value = currentEmail;
+        resetModalAlert.style.display = "none";
+        resetModal.style.display = "flex";
+    }
+
+    function closeResetModal() {
+        resetModal.style.display = "none";
+    }
+
+    if (forgotPasswordLink) forgotPasswordLink.addEventListener("click", openResetModal);
+    if (closeResetModalBtn) closeResetModalBtn.addEventListener("click", closeResetModal);
+    if (cancelResetBtn) cancelResetBtn.addEventListener("click", closeResetModal);
+
+    if (sendResetBtn) {
+        sendResetBtn.addEventListener("click", async () => {
+            const email = resetEmailInput.value.trim();
+            if (!email) {
+                resetModalAlert.className = "auth-alert auth-alert-error";
+                resetModalAlert.textContent = "Please enter your email address.";
+                resetModalAlert.style.display = "block";
+                return;
+            }
+
+            setBtnLoading(sendResetBtn, true, "Send Reset Link");
+            try {
+                await FirebaseAuthManager.sendPasswordReset(email);
+                resetModalAlert.className = "auth-alert auth-alert-success";
+                resetModalAlert.innerHTML = `<strong>Email sent!</strong> Check your inbox at <em>${email}</em> for password reset instructions.`;
+                resetModalAlert.style.display = "block";
+                setBtnLoading(sendResetBtn, false, "Send Reset Link");
+                setTimeout(() => {
+                    closeResetModal();
+                    showAlert(`Password reset instructions sent to ${email}.`, "success");
+                }, 2200);
+            } catch (error) {
+                console.error("Password reset error:", error);
+                resetModalAlert.className = "auth-alert auth-alert-error";
+                resetModalAlert.textContent = FirebaseAuthManager.getFriendlyErrorMessage(error);
+                resetModalAlert.style.display = "block";
+                setBtnLoading(sendResetBtn, false, "Send Reset Link");
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

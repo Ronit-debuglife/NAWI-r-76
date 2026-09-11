@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Saved NAWI Test Records & Verification Database (OIML R-76){% endblock %}
+
+{% block content %}
+<div class="action-banner">
+    <div class="action-banner-info">
+        <h1>NAWI Verification Database & History</h1>
+        <p>Historical test records, verification certificates, and ReportLab PDF documents stored in SQLite.</p>
+    </div>
+    <div class="action-banner-controls">
+        <a href="{{ url_for('views.dashboard') }}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Perform New Verification Test
+        </a>
+    </div>
+</div>
+
+<!-- Stats Counter Grid -->
+<div class="grid-3" style="margin-bottom: 1.5rem;">
+    <div class="card" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div>
+            <span style="font-size: 0.775rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Total Verifications</span>
+            <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">{{ stats.total }}</div>
+        </div>
+    </div>
+
+    <div class="card" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: var(--success-bg); display: flex; align-items: center; justify-content: center; color: var(--success);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+            <span style="font-size: 0.775rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Compliant (PASS)</span>
+            <div style="font-size: 1.6rem; font-weight: 800; color: var(--success);">{{ stats.passed }}</div>
+        </div>
+    </div>
+
+    <div class="card" style="display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: var(--danger-bg); display: flex; align-items: center; justify-content: center; color: var(--danger);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+        <div>
+            <span style="font-size: 0.775rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Defective / Out of Tolerance (FAIL)</span>
+            <div style="font-size: 1.6rem; font-weight: 800; color: var(--danger);">{{ stats.failed }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Records Table Card -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Archived Test Reports
+        </h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="recordSearchInput" placeholder="Search by ID, Serial, Model..." style="width: 250px; padding: 0.4rem 0.75rem;">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="metrology-table" id="recordsTable">
+            <thead>
+                <tr>
+                    <th>Report Ref</th>
+                    <th>Certificate No</th>
+                    <th>Instrument</th>
+                    <th>Class</th>
+                    <th>Max Cap</th>
+                    <th>Inspector</th>
+                    <th>Date & Time</th>
+                    <th>Result</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if reports %}
+                    {% for r in reports %}
+                    <tr id="row-{{ r.report_id }}">
+                        <td class="mono-val"><strong>{{ r.report_id }}</strong></td>
+                        <td>{{ r.certificate_no or '—' }}</td>
+                        <td>
+                            <strong>{{ r.manufacturer }}</strong><br/>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">{{ r.model }} (SN: {{ r.serial_no }})</span>
+                        </td>
+                        <td><span class="badge badge-tech">Class {{ r.accuracy_class }}</span></td>
+                        <td>{{ r.max_capacity }} {{ r.unit }}</td>
+                        <td>{{ r.inspector_name or '—' }}</td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted);">{{ r.created_at[:16].replace('T', ' ') }}</td>
+                        <td>
+                            <span class="status-badge {{ r.overall_status.lower() }}">
+                                {{ r.overall_status }}
+                            </span>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <a href="/report/{{ r.report_id }}" class="btn btn-secondary btn-sm" title="View Web Certificate">
+                                Web View
+                            </a>
+                            <a href="/api/reports/{{ r.report_id }}/pdf?download=1" class="btn btn-primary btn-sm" title="Download Official PDF">
+                                PDF
+                            </a>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteReportRecord('{{ r.report_id }}')" title="Delete from Database">
+                                &times;
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            No test reports stored in database yet. <a href="{{ url_for('views.dashboard') }}" style="color: var(--primary);">Create your first verification test</a>.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Filter records on search input
+document.getElementById('recordSearchInput')?.addEventListener('input', function(e) {
+    const q = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#recordsTable tbody tr');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+    });
+});
+
+// Delete report via API
+async function deleteReportRecord(reportId) {
+    if (!confirm(`Are you sure you want to permanently delete test report ${reportId}?`)) return;
+    try {
+        const res = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Deletion failed');
+        const row = document.getElementById(`row-${reportId}`);
+        if (row) row.remove();
+    } catch (err) {
+        alert('Could not delete report: ' + err.message);
+    }
+}
+</script>
+{% endblock %}

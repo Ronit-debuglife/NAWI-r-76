@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NAWI Metrology Suite - Authentication Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #0b1120;
+            --bg-surface: #131d33;
+            --bg-card: #18233f;
+            --border-color: #273656;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --danger-border: #dc2626;
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --success-border: #059669;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .brand-text h1 {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .brand-text p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem 2rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 0.85rem;
+        }
+
+        .pulse-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+
+        .auth-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.35rem; }
+        .auth-subtitle { font-size: 0.825rem; color: var(--text-muted); }
+
+        .btn-google {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: var(--transition);
+        }
+
+        .btn-google:hover {
+            background: #f9fafb;
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.25rem 0;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider span { padding: 0 0.75rem; }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-card);
+            padding: 0.3rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.25rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.55rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: 1px solid rgba(59,130,246,0.4);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.825rem;
+            margin-bottom: 1.25rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: #86efac;
+        }
+
+        .logged-in-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            display: none;
+        }
+
+        .user-avatar-circle {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            margin: 0 auto 0.75rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+            overflow: hidden;
+        }
+
+        .user-avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-logout {
+            margin-top: 1rem;
+            padding: 0.6rem 1.25rem;
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger);
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-logo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                    <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                    <path d="M7 21h10"/>
+                    <path d="M12 3v18"/>
+                    <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>NAWI Metrology Suite</h1>
+                <p>OIML R-76 Verification Engine</p>
+            </div>
+        </a>
+        <div style="font-size: 0.75rem; color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); padding: 0.25rem 0.6rem; border-radius: 9999px;">
+            Firebase Auth Active
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="auth-card">
+            <!-- Active Authenticated View -->
+            <div id="loggedInView" class="logged-in-box">
+                <div class="user-avatar-circle" id="userAvatar">U</div>
+                <h3 id="userNameDisplay" style="font-size: 1.1rem; margin-bottom: 0.25rem;">Inspector</h3>
+                <p id="userEmailDisplay" style="font-size: 0.8rem; color: var(--text-muted);"></p>
+                <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #10b981; font-weight: 600;">
+                    &bull; Active Metrological Session
+                </div>
+                <button type="button" class="btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+
+            <!-- Authentication Forms View -->
+            <div id="authFormsContainer">
+                <div class="auth-header">
+                    <div class="auth-badge">
+                        <span class="pulse-dot"></span>
+                        <span>Legal Metrology Inspector Portal</span>
+                    </div>
+                    <h2 class="auth-title" id="authHeading">Sign In / Sign Up</h2>
+                    <p class="auth-subtitle">Non-Automatic Weighing Instruments Verification System</p>
+                </div>
+
+                <div id="alertBox" class="alert"></div>
+
+                <div style="margin-bottom: 1.25rem;">
+                    <button type="button" class="btn-google" id="googleBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/>
+                            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+                            <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2c0 2.8.7 5.5 2 7.8l3.6-2.9z"/>
+                            <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.8-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.9C3.8 20.7 7.6 23.5 12 23.5z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <div class="divider"><span>or with email</span></div>
+
+                <div class="tabs">
+                    <button class="tab active" id="tabIn">Sign In (Existing)</button>
+                    <button class="tab" id="tabUp">Sign Up (New)</button>
+                </div>
+
+                <form id="emailForm">
+                    <div class="form-group" id="nameGroup" style="display: none;">
+                        <label class="form-label" for="nameInput">Full Name</label>
+                        <input type="text" id="nameInput" class="form-input" placeholder="Dr. Rajesh Verma">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="emailInput">Email Address</label>
+                        <input type="email" id="emailInput" class="form-input" placeholder="inspector@domain.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pwdInput">Password</label>
+                        <input type="password" id="pwdInput" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">Sign In</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9utwMJL77lQ_5FEAbsG-xXiPMmvnE1y8",
+            authDomain: "nawi-r-76.firebaseapp.com",
+            projectId: "nawi-r-76",
+            storageBucket: "nawi-r-76.firebasestorage.app",
+            messagingSenderId: "943331002972",
+            appId: "1:943331002972:web:3f51ca4a781149c1c2b499",
+            measurementId: "G-FGJZKFG858"
+        };
+
+        let isSignUp = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+
+            const auth = firebase.auth();
+            const alertBox = document.getElementById("alertBox");
+            const formsContainer = document.getElementById("authFormsContainer");
+            const loggedInView = document.getElementById("loggedInView");
+
+            function showAlert(msg, type = 'error') {
+                alertBox.className = `alert alert-${type}`;
+                alertBox.innerHTML = msg;
+                alertBox.style.display = 'block';
+            }
+
+            function hideAlert() { alertBox.style.display = 'none'; }
+
+            // Tab toggling
+            const tabIn = document.getElementById("tabIn");
+            const tabUp = document.getElementById("tabUp");
+            const nameGroup = document.getElementById("nameGroup");
+            const submitBtn = document.getElementById("submitBtn");
+
+            tabIn.addEventListener("click", () => {
+                isSignUp = false;
+                tabIn.classList.add("active");
+                tabUp.classList.remove("active");
+                nameGroup.style.display = "none";
+                submitBtn.textContent = "Sign In";
+                hideAlert();
+            });
+
+            tabUp.addEventListener("click", () => {
+                isSignUp = true;
+                tabUp.classList.add("active");
+                tabIn.classList.remove("active");
+                nameGroup.style.display = "block";
+                submitBtn.textContent = "Create Account";
+                hideAlert();
+            });
+
+            // Auth State Changed
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    formsContainer.style.display = "none";
+                    loggedInView.style.display = "block";
+                    document.getElementById("userNameDisplay").textContent = user.displayName || user.email.split("@")[0];
+                    document.getElementById("userEmailDisplay").textContent = user.email;
+                    const avatar = document.getElementById("userAvatar");
+                    if (user.photoURL) {
+                        avatar.innerHTML = `<img src="${user.photoURL}" referrerpolicy="no-referrer">`;
+                    } else {
+                        avatar.textContent = (user.displayName || user.email)[0].toUpperCase();
+                    }
+                } else {
+                    formsContainer.style.display = "block";
+                    loggedInView.style.display = "none";
+                }
+            });
+
+            // Google Sign In
+            document.getElementById("googleBtn").addEventListener("click", async () => {
+                hideAlert();
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    await auth.signInWithPopup(provider);
+                } catch (e) {
+                    showAlert(e.message || "Google Sign-in failed.");
+                }
+            });
+
+            // Email Form Submit
+            document.getElementById("emailForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                hideAlert();
+                const email = document.getElementById("emailInput").value.trim();
+                const pwd = document.getElementById("pwdInput").value;
+                const name = document.getElementById("nameInput").value.trim();
+
+                try {
+                    if (isSignUp) {
+                        const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+                        if (name && cred.user) {
+                            await cred.user.updateProfile({ displayName: name });
+                        }
+                    } else {
+                        await auth.signInWithEmailAndPassword(email, pwd);
+                    }
+                } catch (e) {
+                    showAlert(e.message || "Authentication error.");
+                }
+            });
+
+            // Sign Out
+            document.getElementById("logoutBtn").addEventListener("click", async () => {
+                await auth.signOut();
+            });
+        });
+    </script>
+</body>
+</html>
